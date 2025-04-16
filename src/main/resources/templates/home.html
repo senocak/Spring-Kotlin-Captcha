@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAPTCHA Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .captcha-container {
+            margin: 15px 0;
+        }
+        .captcha-image {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .refresh-captcha {
+            margin-left: 10px;
+            background-color: #2196F3;
+        }
+        .refresh-captcha:hover {
+            background-color: #0b7dda;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+            border: 1px solid #d6e9c6;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+            border: 1px solid #ebccd1;
+        }
+        .config-info {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #e7f3fe;
+            border: 1px solid #b6d4fe;
+            border-radius: 4px;
+            color: #084298;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CAPTCHA Demo</h1>
+        <div id="configInfo" class="config-info">
+            Loading configuration...
+        </div>
+        <form id="captchaForm">
+            <div class="captcha-container">
+                <label>CAPTCHA:</label>
+                <div>
+                    <img id="captchaImage" class="captcha-image" alt="CAPTCHA Image">
+                    <button type="button" id="refreshCaptcha" class="refresh-captcha">Refresh</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label id="captchaInputLabel" for="captchaInput">Enter the text shown in the image:</label>
+                <input type="text" id="captchaInput" name="captchaInput" required>
+                <input type="hidden" id="captchaToken" name="token">
+            </div>
+
+            <button type="submit">Submit</button>
+        </form>
+
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const captchaForm = document.getElementById('captchaForm')
+            const captchaImage = document.getElementById('captchaImage')
+            const captchaToken = document.getElementById('captchaToken')
+            const captchaInput = document.getElementById('captchaInput')
+            const captchaInputLabel = document.getElementById('captchaInputLabel')
+            const refreshCaptcha = document.getElementById('refreshCaptcha')
+            const resultDiv = document.getElementById('result')
+            const configInfoDiv = document.getElementById('configInfo')
+
+            let captchaType = 'TEXT'
+            let difficultyLevel = 'MEDIUM'
+
+            // Load configuration and then CAPTCHA
+            loadConfig()
+
+            // Function to load CAPTCHA configuration
+            function loadConfig() {
+                fetch('/captcha/config', {
+                    method: 'GET'
+                })
+                .then(response => response.json())
+                .then(config => {
+                    captchaType = config.type
+                    difficultyLevel = config.difficulty
+
+                    // Update UI based on configuration
+                    updateConfigInfo()
+                    updateInputType()
+
+                    // Load CAPTCHA after configuration is loaded
+                    loadCaptcha()
+                })
+                .catch(error => {
+                    console.error('Error loading configuration:', error)
+                    // Load CAPTCHA anyway
+                    loadCaptcha()
+                })
+            }
+
+            // Function to update configuration info display
+            function updateConfigInfo() {
+                configInfoDiv.innerHTML = `
+                    <strong>Current Configuration:</strong><br>
+                    Type: ${captchaType}<br>
+                    Difficulty: ${difficultyLevel}
+                `
+            }
+
+            // Function to update input type based on CAPTCHA type
+            function updateInputType() {
+                if (captchaType === 'MATH') {
+                    captchaInputLabel.textContent = 'Enter the answer to the math problem:'
+                    captchaInput.type = 'number'
+                    captchaInput.placeholder = 'Enter the result'
+                } else {
+                    captchaInputLabel.textContent = 'Enter the text shown in the image:'
+                    captchaInput.type = 'text'
+                    captchaInput.placeholder = ''
+                }
+            }
+
+            // Function to load CAPTCHA image and token
+            function loadCaptcha() {
+                fetch('/captcha/image?' + new Date().getTime(), {
+                    method: 'GET'
+                })
+                .then(response => {
+                    // Extract token from header
+                    const token = response.headers.get('X-Captcha-Token')
+                    if (token) {
+                        captchaToken.value = token
+                    }
+                    return response.blob()
+                })
+                .then(blob => {
+                    captchaImage.src = URL.createObjectURL(blob)
+                })
+                .catch(error => {
+                    console.error('Error loading CAPTCHA:', error)
+                })
+            }
+
+            // Refresh CAPTCHA image
+            refreshCaptcha.addEventListener('click', function() {
+                loadCaptcha()
+                // Clear input field when refreshing
+                captchaInput.value = ''
+                // Hide result
+                resultDiv.style.display = 'none'
+            })
+
+            // Form submission
+            captchaForm.addEventListener('submit', function(e) {
+                e.preventDefault()
+                const inputValue = document.getElementById('captchaInput').value
+                const token = captchaToken.value
+
+                fetch('/captcha/validate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'captchaInput=' + encodeURIComponent(inputValue) + 
+                          '&token=' + encodeURIComponent(token)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    resultDiv.style.display = 'block'
+                    if (data.valid) {
+                        resultDiv.className = 'result success'
+                        resultDiv.textContent = 'Success! CAPTCHA validation passed.'
+
+                        // Show success message with the correct answer for math captchas
+                        if (captchaType === 'MATH') {
+                            resultDiv.textContent = `Success! Your answer "${inputValue}" is correct.`;
+                        } else {
+                            resultDiv.textContent = 'Success! CAPTCHA validation passed.';
+                        }
+                    } else {
+                        resultDiv.className = 'result error'
+
+                        // Show appropriate error message based on captcha type
+                        if (captchaType === 'MATH') {
+                            resultDiv.textContent = `Error! Your answer "${inputValue}" is incorrect. Please try again.`;
+                        } else {
+                            resultDiv.textContent = 'Error! CAPTCHA validation failed. Please try again.';
+                        }
+
+                        // Refresh CAPTCHA after failed attempt
+                        loadCaptcha()
+                        // Clear input field
+                        captchaInput.value = ''
+                    }
+                })
+                .catch(error => {
+                    resultDiv.style.display = 'block'
+                    resultDiv.className = 'result error'
+                    resultDiv.textContent = 'Error! Something went wrong. Please try again.'
+                    console.error('Error:', error)
+                })
+            })
+        })
+    </script>
+</body>
+</html>
