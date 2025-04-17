@@ -338,10 +338,12 @@ class CaptchaService(private val captchaProperties: CaptchaProperties) {
      */
     fun generateCaptchaAudio(text: String): ByteArray {
         try {
+            // Randomly select a voice type
+            val selectedVoice: String = arrayOf("man1", "woman1", "woman2").random()
             val validDigits: String = text.filter { it.isDigit() && it != '0' } // We have audio files for 1-9
             if (validDigits.isEmpty()) {
                 // If no valid digits found, use a default audio file
-                val defaultAudioFile = File("src/main/resources/audios/1.mp3")
+                val defaultAudioFile = File("src/main/resources/audios/$selectedVoice/1.mp3")
                 if (defaultAudioFile.exists())
                     return defaultAudioFile.readBytes()
                 throw IOException("No valid audio files found for the captcha text")
@@ -349,16 +351,15 @@ class CaptchaService(private val captchaProperties: CaptchaProperties) {
             // If there's only one digit, return its audio file directly
             if (validDigits.length == 1) {
                 val digit: Int = validDigits[0].toString().toInt()
-                val audioFile = File("src/main/resources/audios/$digit.mp3")
+                val audioFile = File("src/main/resources/audios/$selectedVoice/$digit.mp3")
                 if (audioFile.exists())
                     return audioFile.readBytes()
             }
-
             // For multiple digits, combine their audio files
             val audioStreams: MutableList<ByteArrayInputStream> = mutableListOf()
             validDigits.forEach { char: Char ->
                 val digit: Int = char.toString().toInt()
-                val audioFile = File("src/main/resources/audios/$digit.mp3")
+                val audioFile = File("src/main/resources/audios/$selectedVoice/$digit.mp3")
                 if (audioFile.exists()) {
                     audioStreams.add(element = ByteArrayInputStream(audioFile.readBytes()))
                 }
