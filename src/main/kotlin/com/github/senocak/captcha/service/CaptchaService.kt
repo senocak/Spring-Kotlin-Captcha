@@ -14,11 +14,9 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
+import java.io.InputStream
+import java.io.SequenceInputStream
 import javax.imageio.ImageIO
-import javax.sound.sampled.AudioFileFormat
-import javax.sound.sampled.AudioFormat
-import javax.sound.sampled.AudioInputStream
-import javax.sound.sampled.AudioSystem
 import kotlin.random.Random
 
 @Service
@@ -35,13 +33,27 @@ class CaptchaService(private val captchaProperties: CaptchaProperties) {
      * Generates captcha text based on the configured type and difficulty
      * @return Random string or math problem
      */
-    fun generateCaptchaText(): String {
-        return when (captchaProperties.captchaType) {
+    fun generateCaptchaText(): String =
+        when (captchaProperties.captchaType) {
             CaptchaType.TEXT -> generateTextCaptcha()
             CaptchaType.MATH -> generateMathCaptcha()
             CaptchaType.PATTERN -> generatePatternCaptcha()
-            CaptchaType.AUDIO -> generateTextCaptcha() // For audio, we'll use text captcha and convert it to audio
+            CaptchaType.AUDIO -> generateAudioCaptchaText() // For audio, we'll generate only digits
         }
+
+    /**
+     * Generates a random digit string for audio CAPTCHA
+     * @return Random string of digits
+     */
+    private fun generateAudioCaptchaText(): String {
+        val length: Int = when (captchaProperties.difficultyLevel) {
+            DifficultyLevel.EASY -> 4
+            DifficultyLevel.MEDIUM -> 6
+            DifficultyLevel.HARD -> 8
+        }
+        return (1..length)
+            .map { Random.nextInt(from = 1, until = 10).toString() } // Only digits 1-9 since we have audio files for 1-10
+            .joinToString(separator = "")
     }
 
     /**
@@ -54,7 +66,6 @@ class CaptchaService(private val captchaProperties: CaptchaProperties) {
             DifficultyLevel.MEDIUM -> 6
             DifficultyLevel.HARD -> 8
         }
-
         return (1..length)
             .map { CHARS.random() }
             .joinToString(separator = "")
@@ -294,24 +305,22 @@ class CaptchaService(private val captchaProperties: CaptchaProperties) {
     /**
      * Generates a random color
      */
-    private fun getRandomColor(): Color {
-        return Color(
+    private fun getRandomColor(): Color =
+        Color(
             Random.nextInt(256),
             Random.nextInt(256),
             Random.nextInt(256)
         )
-    }
 
     /**
      * Generates a random dark color for text (to ensure readability)
      */
-    private fun getRandomDarkColor(): Color {
-        return Color(
+    private fun getRandomDarkColor(): Color =
+        Color(
             Random.nextInt(100),
             Random.nextInt(100),
             Random.nextInt(100)
         )
-    }
 
     /**
      * Converts a BufferedImage to a byte array
@@ -323,103 +332,61 @@ class CaptchaService(private val captchaProperties: CaptchaProperties) {
     }
 
     /**
-     * Generates an audio representation of the CAPTCHA text
+     * Generates an audio representation of the CAPTCHA text using pre-recorded audio files
      * @param text The CAPTCHA text to convert to audio
      * @return Byte array of the audio in WAV format
      */
     fun generateCaptchaAudio(text: String): ByteArray {
-        val sampleRate = 44100f // 44.1 kHz
-        val sampleSizeInBits = 16
-        val channels = 1 // mono
-        val signed = true
-        val bigEndian = false
-
-        val audioFormat = AudioFormat(
-            sampleRate,
-            sampleSizeInBits,
-            channels,
-            signed,
-            bigEndian
-        )
-
-        val outputStream = ByteArrayOutputStream()
-
         try {
-            // Generate audio data
-            val audioData = generateAudioData(text, sampleRate)
-
-            // Create audio input stream
-            val audioBytes = audioData.toByteArray()
-            val audioInputStream = AudioInputStream(
-                ByteArrayInputStream(audioBytes),
-                audioFormat,
-                (audioBytes.size / (sampleSizeInBits / 8)).toLong()
-            )
-
-            // Write to output stream
-            AudioSystem.write(audioInputStream, AudioFileFormat.Type.WAVE, outputStream)
-
-            return outputStream.toByteArray()
-        } catch (e: IOException) {
-            throw RuntimeException("Failed to generate audio CAPTCHA", e)
-        }
-    }
-
-    /**
-     * Generates audio data for the CAPTCHA text
-     * @param text The text to convert to audio
-     * @param sampleRate The sample rate of the audio
-     * @return ByteArrayOutputStream containing the audio data
-     */
-    private fun generateAudioData(text: String, sampleRate: Float): ByteArrayOutputStream {
-        val outputStream = ByteArrayOutputStream()
-        val bytesPerSample = 2 // 16 bits = 2 bytes
-        val duration = 0.5 // seconds per character
-        val pauseDuration = 0.2 // seconds between characters
-
-        text.forEach { char ->
-            // Generate a unique frequency for each character
-            val frequency = when {
-                char.isDigit() -> 500 + (char.toString().toInt() * 50) // 500-950 Hz for digits
-                char.isUpperCase() -> 1000 + ((char - 'A') * 25) // 1000-1625 Hz for uppercase
-                else -> 1700 + ((char - 'a') * 25) // 1700-2325 Hz for lowercase
+            val validDigits: String = text.filter { it.isDigit() && it != '0' } // We have audio files for 1-9
+            if (validDigits.isEmpty()) {
+                // If no valid digits found, use a default audio file
+                val defaultAudioFile = File("src/main/resources/audios/1.mp3")
+                if (defaultAudioFile.exists())
+                    return defaultAudioFile.readBytes()
+                throw IOException("No valid audio files found for the captcha text")
+            }
+            // If there's only one digit, return its audio file directly
+            if (validDigits.length == 1) {
+                val digit: Int = validDigits[0].toString().toInt()
+                val audioFile = File("src/main/resources/audios/$digit.mp3")
+                if (audioFile.exists())
+                    return audioFile.readBytes()
             }
 
-            // Generate tone
-            addTone(outputStream, frequency, duration, sampleRate, bytesPerSample)
-
-            // Add pause between characters
-            addTone(outputStream, 0, pauseDuration, sampleRate, bytesPerSample)
-        }
-
-        return outputStream
-    }
-
-    /**
-     * Adds a tone to the audio stream
-     * @param outputStream The output stream to write to
-     * @param frequency The frequency of the tone in Hz (0 for silence)
-     * @param duration The duration of the tone in seconds
-     * @param sampleRate The sample rate of the audio
-     * @param bytesPerSample The number of bytes per sample
-     */
-    private fun addTone(
-        outputStream: ByteArrayOutputStream,
-        frequency: Int,
-        duration: Double,
-        sampleRate: Float,
-        bytesPerSample: Int
-    ) {
-        val numSamples = (duration * sampleRate).toInt()
-        val amplitude = if (frequency > 0) 32767 else 0 // Max amplitude for 16-bit audio
-
-        for (i in 0 until numSamples) {
-            val angle = 2.0 * Math.PI * i * frequency / sampleRate
-            val sample = (amplitude * Math.sin(angle)).toInt()
-
-            // Write sample to output stream (little endian)
-            outputStream.write(sample and 0xFF)
-            outputStream.write((sample shr 8) and 0xFF)
+            // For multiple digits, combine their audio files
+            val audioStreams: MutableList<ByteArrayInputStream> = mutableListOf()
+            validDigits.forEach { char: Char ->
+                val digit: Int = char.toString().toInt()
+                val audioFile = File("src/main/resources/audios/$digit.mp3")
+                if (audioFile.exists()) {
+                    audioStreams.add(element = ByteArrayInputStream(audioFile.readBytes()))
+                }
+            }
+            if (audioStreams.isEmpty()) {
+                throw IOException("No valid audio files found for the captcha text")
+            }
+            // Combine all audio streams into one
+            val outputStream = ByteArrayOutputStream()
+            try {
+                // Create a sequence of all audio streams
+                var combinedStream: InputStream = audioStreams[0]
+                (1 until audioStreams.size).forEach { i: Int ->
+                    combinedStream = SequenceInputStream(combinedStream, audioStreams[i])
+                }
+                // Copy the combined stream to the output stream
+                val buffer = ByteArray(4096)
+                var bytesRead: Int
+                while (combinedStream.read(buffer).also { bytesRead = it } != -1) {
+                    outputStream.write(buffer, 0, bytesRead)
+                }
+                return outputStream.toByteArray()
+            } finally {
+                audioStreams.forEach { it.close() }
+                outputStream.close()
+            }
+        } catch (e: Exception) {
+            throw RuntimeException("Failed to generate audio CAPTCHA: ${e.localizedMessage}")
         }
     }
 }

@@ -18,9 +18,5 @@ server:
 captcha:
   secretKey: ThisIsASecretKey1234567890123456
   expirationMinutes: 10
-  #captchaType: TEXT
-  #captchaType: MATH
-  captchaType: AUDIO
-  #captchaType: PATTERN
-  difficultyLevel: HARD
-  #difficultyLevel: EASY, MEDIUM, HARD
+  captchaType: AUDIO #TEXT, MATH, PATTERN, AUDIO
+  difficultyLevel: HARD #EASY, MEDIUM, HARD
