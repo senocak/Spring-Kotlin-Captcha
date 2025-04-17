@@ -20,6 +20,7 @@ captcha:
   expirationMinutes: 10
   #captchaType: TEXT
   #captchaType: MATH
-  captchaType: PATTERN
+  captchaType: AUDIO
+  #captchaType: PATTERN
   difficultyLevel: HARD
   #difficultyLevel: EASY, MEDIUM, HARD

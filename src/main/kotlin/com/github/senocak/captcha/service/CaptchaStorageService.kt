@@ -56,6 +56,7 @@ class CaptchaStorageService(private val captchaProperties: CaptchaProperties) {
                 CaptchaType.TEXT -> storedValue.equals(other = userInput, ignoreCase = true)
                 CaptchaType.MATH -> evaluateMathExpression(expression = storedValue) == userInput.trim().toIntOrNull()
                 CaptchaType.PATTERN -> validatePatternAnswer(storedValue = storedValue, userInput = userInput)
+                CaptchaType.AUDIO -> storedValue.equals(other = userInput, ignoreCase = true) // Audio captchas are validated the same way as text captchas
             }
         } catch (e: Exception) {
             // If decryption fails or any other error occurs, validation fails

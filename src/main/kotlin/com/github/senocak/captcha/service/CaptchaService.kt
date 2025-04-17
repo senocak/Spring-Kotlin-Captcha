@@ -10,8 +10,15 @@ import java.awt.Font
 import java.awt.Graphics2D
 import java.awt.RenderingHints
 import java.awt.image.BufferedImage
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.IOException
 import javax.imageio.ImageIO
+import javax.sound.sampled.AudioFileFormat
+import javax.sound.sampled.AudioFormat
+import javax.sound.sampled.AudioInputStream
+import javax.sound.sampled.AudioSystem
 import kotlin.random.Random
 
 @Service
@@ -33,6 +40,7 @@ class CaptchaService(private val captchaProperties: CaptchaProperties) {
             CaptchaType.TEXT -> generateTextCaptcha()
             CaptchaType.MATH -> generateMathCaptcha()
             CaptchaType.PATTERN -> generatePatternCaptcha()
+            CaptchaType.AUDIO -> generateTextCaptcha() // For audio, we'll use text captcha and convert it to audio
         }
     }
 
@@ -312,5 +320,106 @@ class CaptchaService(private val captchaProperties: CaptchaProperties) {
         val outputStream = ByteArrayOutputStream()
         ImageIO.write(image, "png", outputStream)
         return outputStream.toByteArray()
+    }
+
+    /**
+     * Generates an audio representation of the CAPTCHA text
+     * @param text The CAPTCHA text to convert to audio
+     * @return Byte array of the audio in WAV format
+     */
+    fun generateCaptchaAudio(text: String): ByteArray {
+        val sampleRate = 44100f // 44.1 kHz
+        val sampleSizeInBits = 16
+        val channels = 1 // mono
+        val signed = true
+        val bigEndian = false
+
+        val audioFormat = AudioFormat(
+            sampleRate,
+            sampleSizeInBits,
+            channels,
+            signed,
+            bigEndian
+        )
+
+        val outputStream = ByteArrayOutputStream()
+
+        try {
+            // Generate audio data
+            val audioData = generateAudioData(text, sampleRate)
+
+            // Create audio input stream
+            val audioBytes = audioData.toByteArray()
+            val audioInputStream = AudioInputStream(
+                ByteArrayInputStream(audioBytes),
+                audioFormat,
+                (audioBytes.size / (sampleSizeInBits / 8)).toLong()
+            )
+
+            // Write to output stream
+            AudioSystem.write(audioInputStream, AudioFileFormat.Type.WAVE, outputStream)
+
+            return outputStream.toByteArray()
+        } catch (e: IOException) {
+            throw RuntimeException("Failed to generate audio CAPTCHA", e)
+        }
+    }
+
+    /**
+     * Generates audio data for the CAPTCHA text
+     * @param text The text to convert to audio
+     * @param sampleRate The sample rate of the audio
+     * @return ByteArrayOutputStream containing the audio data
+     */
+    private fun generateAudioData(text: String, sampleRate: Float): ByteArrayOutputStream {
+        val outputStream = ByteArrayOutputStream()
+        val bytesPerSample = 2 // 16 bits = 2 bytes
+        val duration = 0.5 // seconds per character
+        val pauseDuration = 0.2 // seconds between characters
+
+        text.forEach { char ->
+            // Generate a unique frequency for each character
+            val frequency = when {
+                char.isDigit() -> 500 + (char.toString().toInt() * 50) // 500-950 Hz for digits
+                char.isUpperCase() -> 1000 + ((char - 'A') * 25) // 1000-1625 Hz for uppercase
+                else -> 1700 + ((char - 'a') * 25) // 1700-2325 Hz for lowercase
+            }
+
+            // Generate tone
+            addTone(outputStream, frequency, duration, sampleRate, bytesPerSample)
+
+            // Add pause between characters
+            addTone(outputStream, 0, pauseDuration, sampleRate, bytesPerSample)
+        }
+
+        return outputStream
+    }
+
+    /**
+     * Adds a tone to the audio stream
+     * @param outputStream The output stream to write to
+     * @param frequency The frequency of the tone in Hz (0 for silence)
+     * @param duration The duration of the tone in seconds
+     * @param sampleRate The sample rate of the audio
+     * @param bytesPerSample The number of bytes per sample
+     */
+    private fun addTone(
+        outputStream: ByteArrayOutputStream,
+        frequency: Int,
+        duration: Double,
+        sampleRate: Float,
+        bytesPerSample: Int
+    ) {
+        val numSamples = (duration * sampleRate).toInt()
+        val amplitude = if (frequency > 0) 32767 else 0 // Max amplitude for 16-bit audio
+
+        for (i in 0 until numSamples) {
+            val angle = 2.0 * Math.PI * i * frequency / sampleRate
+            val sample = (amplitude * Math.sin(angle)).toInt()
+
+            // Write sample to output stream (little endian)
+            outputStream.write(sample and 0xFF)
+            outputStream.write((sample shr 8) and 0xFF)
+        }
     }
 }

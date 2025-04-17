@@ -13,7 +13,7 @@ class CaptchaProperties {
 }
 
 enum class CaptchaType {
-    TEXT, MATH, PATTERN
+    TEXT, MATH, PATTERN, AUDIO
 }
 
 enum class DifficultyLevel {

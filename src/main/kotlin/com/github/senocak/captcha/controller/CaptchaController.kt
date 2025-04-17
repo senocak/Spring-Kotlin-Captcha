@@ -63,6 +63,24 @@ class CaptchaController(
     }
 
     /**
+     * Generates a new CAPTCHA audio and returns it with a token in the header
+     * @return The CAPTCHA audio as a byte array with a token header
+     */
+    @GetMapping("/captcha/audio", produces = ["audio/wav"])
+    @ResponseBody
+    fun getCaptchaAudio(): ResponseEntity<ByteArray> {
+        val captchaText: String = captchaService.generateCaptchaText()
+        val token: String = captchaStorageService.storeCaptcha(captchaValue = captchaText) // Generate token with the CAPTCHA text
+        val captchaAudio: ByteArray = captchaService.generateCaptchaAudio(text = captchaText) // Generate the CAPTCHA audio
+        // Return the audio with the token in the header
+        val headers = HttpHeaders()
+        headers.add(CAPTCHA_TOKEN_HEADER, token)
+        return ResponseEntity.ok()
+            .headers(headers)
+            .body(captchaAudio)
+    }
+
+    /**
      * Validates a CAPTCHA input against the token
      * @param captchaInput The user input to validate
      * @param token The encrypted token containing the original CAPTCHA value

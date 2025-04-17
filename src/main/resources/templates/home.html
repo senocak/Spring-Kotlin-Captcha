@@ -50,12 +50,16 @@
             border: 1px solid #ddd;
             border-radius: 4px;
         }
-        .refresh-captcha {
+        .refresh-captcha, .toggle-captcha {
             margin-left: 10px;
             background-color: #2196F3;
         }
-        .refresh-captcha:hover {
+        .refresh-captcha:hover, .toggle-captcha:hover {
             background-color: #0b7dda;
+        }
+        .audio-captcha {
+            margin-top: 10px;
+            display: none;
         }
         .result {
             margin-top: 20px;
@@ -95,6 +99,12 @@
                 <div>
                     <img id="captchaImage" class="captcha-image" alt="CAPTCHA Image">
                     <button type="button" id="refreshCaptcha" class="refresh-captcha">Refresh</button>
+                    <button type="button" id="toggleCaptcha" class="toggle-captcha">Switch to Audio</button>
+                </div>
+                <div id="audioCaptcha" class="audio-captcha">
+                    <audio id="captchaAudio" controls>
+                        Your browser does not support the audio element.
+                    </audio>
                 </div>
             </div>
 
@@ -114,15 +124,19 @@
         document.addEventListener('DOMContentLoaded', function() {
             const captchaForm = document.getElementById('captchaForm')
             const captchaImage = document.getElementById('captchaImage')
+            const captchaAudio = document.getElementById('captchaAudio')
+            const audioCaptchaDiv = document.getElementById('audioCaptcha')
             const captchaToken = document.getElementById('captchaToken')
             const captchaInput = document.getElementById('captchaInput')
             const captchaInputLabel = document.getElementById('captchaInputLabel')
             const refreshCaptcha = document.getElementById('refreshCaptcha')
+            const toggleCaptcha = document.getElementById('toggleCaptcha')
             const resultDiv = document.getElementById('result')
             const configInfoDiv = document.getElementById('configInfo')
 
             let captchaType = 'TEXT'
             let difficultyLevel = 'MEDIUM'
+            let isAudioMode = false
 
             // Load configuration and then CAPTCHA
             loadConfig()
@@ -177,9 +191,10 @@
                 }
             }
 
-            // Function to load CAPTCHA image and token
+            // Function to load CAPTCHA (image or audio) and token
             function loadCaptcha() {
-                fetch('/captcha/image?' + new Date().getTime(), {
+                const endpoint = isAudioMode ? '/captcha/audio' : '/captcha/image'
+                fetch(endpoint + '?' + new Date().getTime(), {
                     method: 'GET'
                 })
                 .then(response => {
@@ -191,19 +206,45 @@
                     return response.blob()
                 })
                 .then(blob => {
-                    captchaImage.src = URL.createObjectURL(blob)
+                    if (isAudioMode) {
+                        captchaAudio.src = URL.createObjectURL(blob)
+                        captchaAudio.load() // Reload the audio element
+                    } else {
+                        captchaImage.src = URL.createObjectURL(blob)
+                    }
                 })
                 .catch(error => {
                     console.error('Error loading CAPTCHA:', error)
                 })
             }
 
-            // Refresh CAPTCHA image
+            // Refresh CAPTCHA
             refreshCaptcha.addEventListener('click', function() {
                 loadCaptcha()
                 // Clear input field when refreshing
                 captchaInput.value = ''
                 // Hide result
+                resultDiv.style.display = 'none'
+            })
+
+            // Toggle between image and audio CAPTCHA
+            toggleCaptcha.addEventListener('click', function() {
+                isAudioMode = !isAudioMode
+
+                if (isAudioMode) {
+                    captchaImage.style.display = 'none'
+                    audioCaptchaDiv.style.display = 'block'
+                    toggleCaptcha.textContent = 'Switch to Image'
+                    captchaInputLabel.textContent = 'Enter the characters you hear:'
+                } else {
+                    captchaImage.style.display = 'block'
+                    audioCaptchaDiv.style.display = 'none'
+                    toggleCaptcha.textContent = 'Switch to Audio'
+                    captchaInputLabel.textContent = 'Enter the text shown in the image:'
+                }
+
+                loadCaptcha()
+                captchaInput.value = ''
                 resultDiv.style.display = 'none'
             })
 
