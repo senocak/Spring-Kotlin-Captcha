@@ -18,5 +18,6 @@ server:
 captcha:
   secretKey: ThisIsASecretKey1234567890123456
   expirationMinutes: 10
-  captchaType: AUDIO #TEXT, MATH, PATTERN, AUDIO
+  captchaType: AUDIO #TEXT, MATH, PATTERN, AUDIO, BACKGROUND_IMAGE
   difficultyLevel: HARD #EASY, MEDIUM, HARD
+  useBackgroundImage: true #true/false - enables background images for any captcha type

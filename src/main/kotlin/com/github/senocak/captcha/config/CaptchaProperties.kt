@@ -10,10 +10,11 @@ class CaptchaProperties {
     var expirationMinutes: Long = 10
     var captchaType: CaptchaType = CaptchaType.TEXT
     var difficultyLevel: DifficultyLevel = DifficultyLevel.MEDIUM
+    var useBackgroundImage: Boolean = false
 }
 
 enum class CaptchaType {
-    TEXT, MATH, PATTERN, AUDIO
+    TEXT, MATH, PATTERN, AUDIO, BACKGROUND_IMAGE
 }
 
 enum class DifficultyLevel {

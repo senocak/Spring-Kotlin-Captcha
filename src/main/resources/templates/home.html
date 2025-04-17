@@ -184,6 +184,10 @@
                     captchaInputLabel.textContent = 'What number comes next in the pattern?'
                     captchaInput.type = 'number'
                     captchaInput.placeholder = 'Enter the next number'
+                } else if (captchaType === 'BACKGROUND_IMAGE') {
+                    captchaInputLabel.textContent = 'Enter the text shown on the background image:'
+                    captchaInput.type = 'text'
+                    captchaInput.placeholder = ''
                 } else {
                     captchaInputLabel.textContent = 'Enter the text shown in the image:'
                     captchaInput.type = 'text'

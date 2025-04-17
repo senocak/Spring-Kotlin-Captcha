@@ -8,6 +8,8 @@ A flexible and customizable CAPTCHA implementation for Spring Boot applications 
   - **Text**: Random alphanumeric characters
   - **Math**: Mathematical expressions to solve
   - **Pattern**: Sequence patterns where users identify the next number
+  - **Audio**: Audio representation of digits for accessibility
+  - **Background Image**: Text captcha with decorative background images
 
 - **Configurable Difficulty Levels**:
   - **Easy**: Simpler challenges suitable for most users
@@ -148,8 +150,9 @@ You can configure the CAPTCHA behavior in your `application.yml` file:
 captcha:
   secretKey: YourSecretKey1234567890123456789012 # 32 bytes for AES-256
   expirationMinutes: 10
-  captchaType: TEXT # Options: TEXT, MATH, PATTERN
+  captchaType: TEXT # Options: TEXT, MATH, PATTERN, AUDIO, BACKGROUND_IMAGE
   difficultyLevel: MEDIUM # Options: EASY, MEDIUM, HARD
+  useBackgroundImage: false # Enable background images for any captcha type
 ```
 
 ### Configuration Options
@@ -158,8 +161,9 @@ captcha:
 |----------|-------------|---------|---------|
 | secretKey | Secret key for AES encryption | ThisIsASecretKey1234567890123456 | 32-byte string |
 | expirationMinutes | CAPTCHA validity period | 10 | Any positive number |
-| captchaType | Type of CAPTCHA challenge | TEXT | TEXT, MATH, PATTERN |
+| captchaType | Type of CAPTCHA challenge | TEXT | TEXT, MATH, PATTERN, AUDIO, BACKGROUND_IMAGE |
 | difficultyLevel | Difficulty level | MEDIUM | EASY, MEDIUM, HARD |
+| useBackgroundImage | Enable background images for any captcha type | false | true, false |
 
 ## License
 

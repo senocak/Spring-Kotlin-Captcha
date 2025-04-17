@@ -26,3 +26,22 @@ POST {{baseUrl}}/captcha/validate
 Content-Type: application/x-www-form-urlencoded
 
 captchaInput=13&token={{captchaToken}}
+
+### Generate Background Image Captcha (requires setting captchaType: BACKGROUND_IMAGE in application.yml)
+# Generates a new CAPTCHA image with a background image and returns it with a token in the header
+# The token is returned in the X-Captcha-Token header
+# @name backgroundCaptchaResponse
+GET {{baseUrl}}/captcha/image
+Accept: image/png
+
+> {%
+    client.global.set("backgroundCaptchaToken", response.headers.valueOf("X-Captcha-Token"))
+ %}
+
+### Validate Background Image Captcha
+# Validates a background image CAPTCHA input against the token
+# Replace 'your-captcha-answer' with the actual answer to the captcha
+POST {{baseUrl}}/captcha/validate
+Content-Type: application/x-www-form-urlencoded
+
+captchaInput=your-captcha-answer&token={{backgroundCaptchaToken}}

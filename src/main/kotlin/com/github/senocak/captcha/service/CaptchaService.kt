@@ -39,6 +39,7 @@ class CaptchaService(private val captchaProperties: CaptchaProperties) {
             CaptchaType.MATH -> generateMathCaptcha()
             CaptchaType.PATTERN -> generatePatternCaptcha()
             CaptchaType.AUDIO -> generateAudioCaptchaText() // For audio, we'll generate only digits
+            CaptchaType.BACKGROUND_IMAGE -> generateTextCaptcha() // Use the same text generation for background image captchas
         }
 
     /**
@@ -218,9 +219,34 @@ class CaptchaService(private val captchaProperties: CaptchaProperties) {
         graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
         graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY)
 
-        // Fill background with white
-        graphics.color = Color.WHITE
-        graphics.fillRect(0, 0, CAPTCHA_WIDTH, CAPTCHA_HEIGHT)
+        // Check if we should use a background image
+        val useBackground = captchaProperties.captchaType == CaptchaType.BACKGROUND_IMAGE || 
+                           captchaProperties.useBackgroundImage
+
+        if (useBackground) {
+            // Load a random background image
+            try {
+                val bgNumber = Random.nextInt(1, 5) // We have 4 background images (1.jpeg to 4.jpeg)
+                val bgImageFile = File("src/main/resources/bg/$bgNumber.jpeg")
+                if (bgImageFile.exists()) {
+                    val bgImage = ImageIO.read(bgImageFile)
+                    // Draw the background image, scaled to fit the captcha dimensions
+                    graphics.drawImage(bgImage, 0, 0, CAPTCHA_WIDTH, CAPTCHA_HEIGHT, null)
+                } else {
+                    // Fallback to white background if image not found
+                    graphics.color = Color.WHITE
+                    graphics.fillRect(0, 0, CAPTCHA_WIDTH, CAPTCHA_HEIGHT)
+                }
+            } catch (e: Exception) {
+                // Fallback to white background if there's an error
+                graphics.color = Color.WHITE
+                graphics.fillRect(0, 0, CAPTCHA_WIDTH, CAPTCHA_HEIGHT)
+            }
+        } else {
+            // Fill background with white
+            graphics.color = Color.WHITE
+            graphics.fillRect(0, 0, CAPTCHA_WIDTH, CAPTCHA_HEIGHT)
+        }
 
         // Add noise (random lines)
         addNoise(graphics = graphics)
