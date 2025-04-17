@@ -9,8 +9,6 @@ class CaptchaProperties {
     var secretKey: String = "ThisIsASecretKey1234567890123456" // 32 bytes for AES-256
     var expirationMinutes: Long = 10
     var captchaType: CaptchaType = CaptchaType.TEXT
-    var difficultyLevel: DifficultyLevel = DifficultyLevel.MEDIUM
-    var useBackgroundImage: Boolean = false
 }
 
 enum class CaptchaType {

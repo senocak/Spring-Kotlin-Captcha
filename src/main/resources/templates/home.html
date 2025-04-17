@@ -25,7 +25,7 @@
             margin-bottom: 5px;
             font-weight: bold;
         }
-        input[type="text"], input[type="number"] {
+        input[type="text"], input[type="number"], select.form-control {
             width: 100%;
             padding: 8px;
             border: 1px solid #ddd;
@@ -85,6 +85,40 @@
             border-radius: 4px;
             color: #084298;
         }
+        /* Tab styles */
+        .tabs {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            border-radius: 4px 4px 0 0;
+            margin-bottom: 15px;
+        }
+        .tab-button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 10px 16px;
+            transition: 0.3s;
+            font-size: 14px;
+            color: #555;
+        }
+        .tab-button:hover {
+            background-color: #ddd;
+        }
+        .tab-button.active {
+            background-color: #2196F3;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            background-color: white;
+        }
     </style>
 </head>
 <body>
@@ -93,25 +127,107 @@
         <div id="configInfo" class="config-info">
             Loading configuration...
         </div>
+
+        <!-- Difficulty Level Selection -->
+        <div class="form-group">
+            <label for="difficultySelect">Difficulty Level:</label>
+            <select id="difficultySelect" class="form-control">
+                <option value="EASY">Easy</option>
+                <option value="MEDIUM" selected>Medium</option>
+                <option value="HARD">Hard</option>
+            </select>
+        </div>
+
+        <!-- Tab navigation -->
+        <div class="tabs">
+            <button class="tab-button active" data-tab="text">Text CAPTCHA</button>
+            <button class="tab-button" data-tab="math">Math CAPTCHA</button>
+            <button class="tab-button" data-tab="pattern">Pattern CAPTCHA</button>
+            <button class="tab-button" data-tab="audio">Audio CAPTCHA</button>
+            <button class="tab-button" data-tab="background">Background Image CAPTCHA</button>
+        </div>
+
         <form id="captchaForm">
-            <div class="captcha-container">
-                <label>CAPTCHA:</label>
-                <div>
-                    <img id="captchaImage" class="captcha-image" alt="CAPTCHA Image">
-                    <button type="button" id="refreshCaptcha" class="refresh-captcha">Refresh</button>
-                    <button type="button" id="toggleCaptcha" class="toggle-captcha">Switch to Audio</button>
+            <!-- Text CAPTCHA Tab -->
+            <div id="text-tab" class="tab-content" style="display: block;">
+                <div class="captcha-container">
+                    <label>Text CAPTCHA:</label>
+                    <div>
+                        <img id="textCaptchaImage" class="captcha-image" alt="Text CAPTCHA Image">
+                        <button type="button" id="refreshTextCaptcha" class="refresh-captcha">Refresh</button>
+                    </div>
                 </div>
-                <div id="audioCaptcha" class="audio-captcha">
-                    <audio id="captchaAudio" controls>
-                        Your browser does not support the audio element.
-                    </audio>
+                <div class="form-group">
+                    <label for="textCaptchaInput">Enter the text shown in the image:</label>
+                    <input type="text" id="textCaptchaInput" name="captchaInput" required>
+                    <input type="hidden" id="textCaptchaToken" name="token">
                 </div>
             </div>
 
-            <div class="form-group">
-                <label id="captchaInputLabel" for="captchaInput">Enter the text shown in the image:</label>
-                <input type="text" id="captchaInput" name="captchaInput" required>
-                <input type="hidden" id="captchaToken" name="token">
+            <!-- Math CAPTCHA Tab -->
+            <div id="math-tab" class="tab-content">
+                <div class="captcha-container">
+                    <label>Math CAPTCHA:</label>
+                    <div>
+                        <img id="mathCaptchaImage" class="captcha-image" alt="Math CAPTCHA Image">
+                        <button type="button" id="refreshMathCaptcha" class="refresh-captcha">Refresh</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="mathCaptchaInput">Enter the answer to the math problem:</label>
+                    <input type="number" id="mathCaptchaInput" name="captchaInput" required>
+                    <input type="hidden" id="mathCaptchaToken" name="token">
+                </div>
+            </div>
+
+            <!-- Pattern CAPTCHA Tab -->
+            <div id="pattern-tab" class="tab-content">
+                <div class="captcha-container">
+                    <label>Pattern CAPTCHA:</label>
+                    <div>
+                        <img id="patternCaptchaImage" class="captcha-image" alt="Pattern CAPTCHA Image">
+                        <button type="button" id="refreshPatternCaptcha" class="refresh-captcha">Refresh</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="patternCaptchaInput">What number comes next in the pattern?</label>
+                    <input type="number" id="patternCaptchaInput" name="captchaInput" required>
+                    <input type="hidden" id="patternCaptchaToken" name="token">
+                </div>
+            </div>
+
+            <!-- Audio CAPTCHA Tab -->
+            <div id="audio-tab" class="tab-content">
+                <div class="captcha-container">
+                    <label>Audio CAPTCHA:</label>
+                    <div id="audioCaptcha">
+                        <audio id="captchaAudio" controls>
+                            Your browser does not support the audio element.
+                        </audio>
+                        <button type="button" id="refreshAudioCaptcha" class="refresh-captcha">Refresh</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="audioCaptchaInput">Enter the characters you hear:</label>
+                    <input type="text" id="audioCaptchaInput" name="captchaInput" required>
+                    <input type="hidden" id="audioCaptchaToken" name="token">
+                </div>
+            </div>
+
+            <!-- Background Image CAPTCHA Tab -->
+            <div id="background-tab" class="tab-content">
+                <div class="captcha-container">
+                    <label>Background Image CAPTCHA:</label>
+                    <div>
+                        <img id="backgroundCaptchaImage" class="captcha-image" alt="Background Image CAPTCHA">
+                        <button type="button" id="refreshBackgroundCaptcha" class="refresh-captcha">Refresh</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="backgroundCaptchaInput">Enter the text shown on the background image:</label>
+                    <input type="text" id="backgroundCaptchaInput" name="captchaInput" required>
+                    <input type="hidden" id="backgroundCaptchaToken" name="token">
+                </div>
             </div>
 
             <button type="submit">Submit</button>
@@ -122,24 +238,97 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Form and result elements
             const captchaForm = document.getElementById('captchaForm')
-            const captchaImage = document.getElementById('captchaImage')
-            const captchaAudio = document.getElementById('captchaAudio')
-            const audioCaptchaDiv = document.getElementById('audioCaptcha')
-            const captchaToken = document.getElementById('captchaToken')
-            const captchaInput = document.getElementById('captchaInput')
-            const captchaInputLabel = document.getElementById('captchaInputLabel')
-            const refreshCaptcha = document.getElementById('refreshCaptcha')
-            const toggleCaptcha = document.getElementById('toggleCaptcha')
             const resultDiv = document.getElementById('result')
             const configInfoDiv = document.getElementById('configInfo')
 
-            let captchaType = 'TEXT'
-            let difficultyLevel = 'MEDIUM'
-            let isAudioMode = false
+            // Tab elements
+            const tabButtons = document.querySelectorAll('.tab-button')
+            const tabContents = document.querySelectorAll('.tab-content')
 
-            // Load configuration and then CAPTCHA
+            // CAPTCHA elements for each tab
+            const textCaptchaImage = document.getElementById('textCaptchaImage')
+            const mathCaptchaImage = document.getElementById('mathCaptchaImage')
+            const patternCaptchaImage = document.getElementById('patternCaptchaImage')
+            const captchaAudio = document.getElementById('captchaAudio')
+            const backgroundCaptchaImage = document.getElementById('backgroundCaptchaImage')
+
+            // Token elements for each tab
+            const textCaptchaToken = document.getElementById('textCaptchaToken')
+            const mathCaptchaToken = document.getElementById('mathCaptchaToken')
+            const patternCaptchaToken = document.getElementById('patternCaptchaToken')
+            const audioCaptchaToken = document.getElementById('audioCaptchaToken')
+            const backgroundCaptchaToken = document.getElementById('backgroundCaptchaToken')
+
+            // Input elements for each tab
+            const textCaptchaInput = document.getElementById('textCaptchaInput')
+            const mathCaptchaInput = document.getElementById('mathCaptchaInput')
+            const patternCaptchaInput = document.getElementById('patternCaptchaInput')
+            const audioCaptchaInput = document.getElementById('audioCaptchaInput')
+            const backgroundCaptchaInput = document.getElementById('backgroundCaptchaInput')
+
+            // Refresh buttons for each tab
+            const refreshTextCaptcha = document.getElementById('refreshTextCaptcha')
+            const refreshMathCaptcha = document.getElementById('refreshMathCaptcha')
+            const refreshPatternCaptcha = document.getElementById('refreshPatternCaptcha')
+            const refreshAudioCaptcha = document.getElementById('refreshAudioCaptcha')
+            const refreshBackgroundCaptcha = document.getElementById('refreshBackgroundCaptcha')
+
+            // Current active tab and configuration
+            let activeTab = 'text'
+            let serverCaptchaType = 'TEXT'
+            let difficultyLevel = 'MEDIUM'
+
+            // Difficulty level selector
+            const difficultySelect = document.getElementById('difficultySelect')
+
+            // Load configuration and then CAPTCHAs
             loadConfig()
+
+            // Add event listener for difficulty level changes
+            difficultySelect.addEventListener('change', function() {
+                // Reload the CAPTCHA for the current active tab
+                loadCaptchaForTab(activeTab)
+            })
+
+            // Tab switching functionality
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const tabId = button.getAttribute('data-tab')
+                    switchTab(tabId)
+                })
+            })
+
+            // Function to switch tabs
+            function switchTab(tabId) {
+                // Update active tab
+                activeTab = tabId
+
+                // Update tab buttons
+                tabButtons.forEach(btn => {
+                    if (btn.getAttribute('data-tab') === tabId) {
+                        btn.classList.add('active')
+                    } else {
+                        btn.classList.remove('active')
+                    }
+                })
+
+                // Update tab content visibility
+                tabContents.forEach(content => {
+                    if (content.id === tabId + '-tab') {
+                        content.style.display = 'block'
+                    } else {
+                        content.style.display = 'none'
+                    }
+                })
+
+                // Load CAPTCHA for the active tab if not already loaded
+                loadCaptchaForTab(tabId)
+
+                // Hide result
+                resultDiv.style.display = 'none'
+            }
 
             // Function to load CAPTCHA configuration
             function loadConfig() {
@@ -148,115 +337,235 @@
                 })
                 .then(response => response.json())
                 .then(config => {
-                    captchaType = config.type
-                    difficultyLevel = config.difficulty
+                    // Update difficultyLevel from the new config structure
+                    if (config.DifficultyLevel && config.DifficultyLevel.length > 0) {
+                        difficultyLevel = config.DifficultyLevel.join(', ')
+                    }
 
                     // Update UI based on configuration
                     updateConfigInfo()
-                    updateInputType()
 
-                    // Load CAPTCHA after configuration is loaded
-                    loadCaptcha()
+                    // Load CAPTCHAs for all tabs
+                    loadAllCaptchas()
                 })
                 .catch(error => {
                     console.error('Error loading configuration:', error)
-                    // Load CAPTCHA anyway
-                    loadCaptcha()
+                    // Load CAPTCHAs anyway
+                    loadAllCaptchas()
                 })
             }
 
             // Function to update configuration info display
             function updateConfigInfo() {
                 configInfoDiv.innerHTML = `
-                    <strong>Current Configuration:</strong><br>
-                    Type: ${captchaType}<br>
-                    Difficulty: ${difficultyLevel}
+                    <strong>Server Configuration:</strong><br>
+                    Available Difficulty Levels: ${difficultyLevel}
                 `
             }
 
-            // Function to update input type based on CAPTCHA type
-            function updateInputType() {
-                if (captchaType === 'MATH') {
-                    captchaInputLabel.textContent = 'Enter the answer to the math problem:'
-                    captchaInput.type = 'number'
-                    captchaInput.placeholder = 'Enter the result'
-                } else if (captchaType === 'PATTERN') {
-                    captchaInputLabel.textContent = 'What number comes next in the pattern?'
-                    captchaInput.type = 'number'
-                    captchaInput.placeholder = 'Enter the next number'
-                } else if (captchaType === 'BACKGROUND_IMAGE') {
-                    captchaInputLabel.textContent = 'Enter the text shown on the background image:'
-                    captchaInput.type = 'text'
-                    captchaInput.placeholder = ''
-                } else {
-                    captchaInputLabel.textContent = 'Enter the text shown in the image:'
-                    captchaInput.type = 'text'
-                    captchaInput.placeholder = ''
+            // Function to load all CAPTCHAs
+            function loadAllCaptchas() {
+                loadCaptchaForTab('text')
+                // We'll load other CAPTCHAs only when their tabs are clicked to save resources
+            }
+
+            // Function to load CAPTCHA for a specific tab
+            function loadCaptchaForTab(tabId) {
+                switch(tabId) {
+                    case 'text':
+                        loadTextCaptcha(textCaptchaImage, textCaptchaToken)
+                        break
+                    case 'math':
+                        loadMathCaptcha(mathCaptchaImage, mathCaptchaToken)
+                        break
+                    case 'pattern':
+                        loadPatternCaptcha(patternCaptchaImage, patternCaptchaToken)
+                        break
+                    case 'audio':
+                        loadAudioCaptcha(captchaAudio, audioCaptchaToken)
+                        break
+                    case 'background':
+                        loadBackgroundCaptcha(backgroundCaptchaImage, backgroundCaptchaToken)
+                        break
                 }
             }
 
-            // Function to load CAPTCHA (image or audio) and token
-            function loadCaptcha() {
-                const endpoint = isAudioMode ? '/captcha/audio' : '/captcha/image'
-                fetch(endpoint + '?' + new Date().getTime(), {
+            // Function to load text CAPTCHA
+            function loadTextCaptcha(imageElement, tokenElement) {
+                const selectedDifficulty = difficultySelect.value;
+                fetch(`/captcha/text?difficultyLevel=${selectedDifficulty}&${new Date().getTime()}`, {
                     method: 'GET'
                 })
                 .then(response => {
                     // Extract token from header
                     const token = response.headers.get('X-Captcha-Token')
                     if (token) {
-                        captchaToken.value = token
+                        tokenElement.value = token
                     }
                     return response.blob()
                 })
                 .then(blob => {
-                    if (isAudioMode) {
-                        captchaAudio.src = URL.createObjectURL(blob)
-                        captchaAudio.load() // Reload the audio element
-                    } else {
-                        captchaImage.src = URL.createObjectURL(blob)
-                    }
+                    imageElement.src = URL.createObjectURL(blob)
                 })
                 .catch(error => {
-                    console.error('Error loading CAPTCHA:', error)
+                    console.error('Error loading text CAPTCHA image:', error)
                 })
             }
 
-            // Refresh CAPTCHA
-            refreshCaptcha.addEventListener('click', function() {
-                loadCaptcha()
-                // Clear input field when refreshing
-                captchaInput.value = ''
-                // Hide result
+            // Function to load math CAPTCHA
+            function loadMathCaptcha(imageElement, tokenElement) {
+                const selectedDifficulty = difficultySelect.value;
+                fetch(`/captcha/math?difficultyLevel=${selectedDifficulty}&${new Date().getTime()}`, {
+                    method: 'GET'
+                })
+                .then(response => {
+                    // Extract token from header
+                    const token = response.headers.get('X-Captcha-Token')
+                    if (token) {
+                        tokenElement.value = token
+                    }
+                    return response.blob()
+                })
+                .then(blob => {
+                    imageElement.src = URL.createObjectURL(blob)
+                })
+                .catch(error => {
+                    console.error('Error loading math CAPTCHA image:', error)
+                })
+            }
+
+            // Function to load pattern CAPTCHA
+            function loadPatternCaptcha(imageElement, tokenElement) {
+                const selectedDifficulty = difficultySelect.value;
+                fetch(`/captcha/pattern?difficultyLevel=${selectedDifficulty}&${new Date().getTime()}`, {
+                    method: 'GET'
+                })
+                .then(response => {
+                    // Extract token from header
+                    const token = response.headers.get('X-Captcha-Token')
+                    if (token) {
+                        tokenElement.value = token
+                    }
+                    return response.blob()
+                })
+                .then(blob => {
+                    imageElement.src = URL.createObjectURL(blob)
+                })
+                .catch(error => {
+                    console.error('Error loading pattern CAPTCHA image:', error)
+                })
+            }
+
+            // Function to load background image CAPTCHA
+            function loadBackgroundCaptcha(imageElement, tokenElement) {
+                const selectedDifficulty = difficultySelect.value;
+                fetch(`/captcha/text?difficultyLevel=${selectedDifficulty}&useBackgroundImage=true&${new Date().getTime()}`, {
+                    method: 'GET'
+                })
+                .then(response => {
+                    // Extract token from header
+                    const token = response.headers.get('X-Captcha-Token')
+                    if (token) {
+                        tokenElement.value = token
+                    }
+                    return response.blob()
+                })
+                .then(blob => {
+                    imageElement.src = URL.createObjectURL(blob)
+                })
+                .catch(error => {
+                    console.error('Error loading background CAPTCHA image:', error)
+                })
+            }
+
+            // Function to load audio CAPTCHA
+            function loadAudioCaptcha(audioElement, tokenElement) {
+                const selectedDifficulty = difficultySelect.value;
+                fetch(`/captcha/audio?difficultyLevel=${selectedDifficulty}&${new Date().getTime()}`, {
+                    method: 'GET'
+                })
+                .then(response => {
+                    // Extract token from header
+                    const token = response.headers.get('X-Captcha-Token')
+                    if (token) {
+                        tokenElement.value = token
+                    }
+                    return response.blob()
+                })
+                .then(blob => {
+                    audioElement.src = URL.createObjectURL(blob)
+                    audioElement.load() // Reload the audio element
+                })
+                .catch(error => {
+                    console.error('Error loading CAPTCHA audio:', error)
+                })
+            }
+
+            // Refresh CAPTCHA event listeners
+            refreshTextCaptcha.addEventListener('click', function() {
+                loadTextCaptcha(textCaptchaImage, textCaptchaToken)
+                textCaptchaInput.value = ''
                 resultDiv.style.display = 'none'
             })
 
-            // Toggle between image and audio CAPTCHA
-            toggleCaptcha.addEventListener('click', function() {
-                isAudioMode = !isAudioMode
+            refreshMathCaptcha.addEventListener('click', function() {
+                loadMathCaptcha(mathCaptchaImage, mathCaptchaToken)
+                mathCaptchaInput.value = ''
+                resultDiv.style.display = 'none'
+            })
 
-                if (isAudioMode) {
-                    captchaImage.style.display = 'none'
-                    audioCaptchaDiv.style.display = 'block'
-                    toggleCaptcha.textContent = 'Switch to Image'
-                    captchaInputLabel.textContent = 'Enter the characters you hear:'
-                } else {
-                    captchaImage.style.display = 'block'
-                    audioCaptchaDiv.style.display = 'none'
-                    toggleCaptcha.textContent = 'Switch to Audio'
-                    captchaInputLabel.textContent = 'Enter the text shown in the image:'
-                }
+            refreshPatternCaptcha.addEventListener('click', function() {
+                loadPatternCaptcha(patternCaptchaImage, patternCaptchaToken)
+                patternCaptchaInput.value = ''
+                resultDiv.style.display = 'none'
+            })
 
-                loadCaptcha()
-                captchaInput.value = ''
+            refreshAudioCaptcha.addEventListener('click', function() {
+                loadAudioCaptcha(captchaAudio, audioCaptchaToken)
+                audioCaptchaInput.value = ''
+                resultDiv.style.display = 'none'
+            })
+
+            refreshBackgroundCaptcha.addEventListener('click', function() {
+                loadBackgroundCaptcha(backgroundCaptchaImage, backgroundCaptchaToken)
+                backgroundCaptchaInput.value = ''
                 resultDiv.style.display = 'none'
             })
 
             // Form submission
             captchaForm.addEventListener('submit', function(e) {
                 e.preventDefault()
-                const inputValue = document.getElementById('captchaInput').value
-                const token = captchaToken.value
+
+                // Get input value and token based on active tab
+                let inputValue, token, captchaType
+
+                switch(activeTab) {
+                    case 'text':
+                        inputValue = textCaptchaInput.value
+                        token = textCaptchaToken.value
+                        captchaType = 'TEXT'
+                        break
+                    case 'math':
+                        inputValue = mathCaptchaInput.value
+                        token = mathCaptchaToken.value
+                        captchaType = 'MATH'
+                        break
+                    case 'pattern':
+                        inputValue = patternCaptchaInput.value
+                        token = patternCaptchaToken.value
+                        captchaType = 'PATTERN'
+                        break
+                    case 'audio':
+                        inputValue = audioCaptchaInput.value
+                        token = audioCaptchaToken.value
+                        captchaType = 'AUDIO'
+                        break
+                    case 'background':
+                        inputValue = backgroundCaptchaInput.value
+                        token = backgroundCaptchaToken.value
+                        captchaType = 'TEXT'
+                        break
+                }
 
                 fetch('/captcha/validate', {
                     method: 'POST',
@@ -271,7 +580,6 @@
                     resultDiv.style.display = 'block'
                     if (data.valid) {
                         resultDiv.className = 'result success'
-                        resultDiv.textContent = 'Success! CAPTCHA validation passed.'
 
                         // Show success message with the correct answer for math/pattern captchas
                         if (captchaType === 'MATH' || captchaType === 'PATTERN') {
@@ -292,9 +600,26 @@
                         }
 
                         // Refresh CAPTCHA after failed attempt
-                        loadCaptcha()
+                        loadCaptchaForTab(activeTab)
+
                         // Clear input field
-                        captchaInput.value = ''
+                        switch(activeTab) {
+                            case 'text':
+                                textCaptchaInput.value = ''
+                                break
+                            case 'math':
+                                mathCaptchaInput.value = ''
+                                break
+                            case 'pattern':
+                                patternCaptchaInput.value = ''
+                                break
+                            case 'audio':
+                                audioCaptchaInput.value = ''
+                                break
+                            case 'background':
+                                backgroundCaptchaInput.value = ''
+                                break
+                        }
                     }
                 })
                 .catch(error => {

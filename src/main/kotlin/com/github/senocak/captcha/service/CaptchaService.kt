@@ -30,24 +30,12 @@ class CaptchaService(private val captchaProperties: CaptchaProperties) {
     }
 
     /**
-     * Generates captcha text based on the configured type and difficulty
-     * @return Random string or math problem
-     */
-    fun generateCaptchaText(): String =
-        when (captchaProperties.captchaType) {
-            CaptchaType.TEXT -> generateTextCaptcha()
-            CaptchaType.MATH -> generateMathCaptcha()
-            CaptchaType.PATTERN -> generatePatternCaptcha()
-            CaptchaType.AUDIO -> generateAudioCaptchaText() // For audio, we'll generate only digits
-            CaptchaType.BACKGROUND_IMAGE -> generateTextCaptcha() // Use the same text generation for background image captchas
-        }
-
-    /**
      * Generates a random digit string for audio CAPTCHA
+     * @param difficultyLevel The difficulty level of the captcha (defaults to configured value)
      * @return Random string of digits
      */
-    private fun generateAudioCaptchaText(): String {
-        val length: Int = when (captchaProperties.difficultyLevel) {
+    fun generateAudioCaptchaText(difficultyLevel: DifficultyLevel = DifficultyLevel.MEDIUM): String {
+        val length: Int = when (difficultyLevel) {
             DifficultyLevel.EASY -> 4
             DifficultyLevel.MEDIUM -> 6
             DifficultyLevel.HARD -> 8
@@ -59,30 +47,35 @@ class CaptchaService(private val captchaProperties: CaptchaProperties) {
 
     /**
      * Generates a random alphanumeric string for text CAPTCHA
+     * @param difficultyLevel The difficulty level of the captcha (defaults to configured value)
      * @return Random string of specified length
      */
-    private fun generateTextCaptcha(): String {
-        val length: Int = when (captchaProperties.difficultyLevel) {
+    fun generateTextCaptcha(
+        difficultyLevel: DifficultyLevel = DifficultyLevel.MEDIUM,
+        useDigitsOnly: Boolean = false
+    ): String {
+        val length: Int = when (difficultyLevel) {
             DifficultyLevel.EASY -> 4
             DifficultyLevel.MEDIUM -> 6
             DifficultyLevel.HARD -> 8
         }
+        val charSet: List<Char> = if (useDigitsOnly) ('0'..'9').toList() else CHARS
         return (1..length)
-            .map { CHARS.random() }
+            .map { charSet.random() }
             .joinToString(separator = "")
     }
 
     /**
      * Generates a math problem for math CAPTCHA
+     * @param difficultyLevel The difficulty level of the captcha (defaults to configured value)
      * @return Math problem as a string
      */
-    private fun generateMathCaptcha(): String {
-        return when (captchaProperties.difficultyLevel) {
+    fun generateMathCaptcha(difficultyLevel: DifficultyLevel = DifficultyLevel.MEDIUM): String =
+        when (difficultyLevel) {
             DifficultyLevel.EASY -> generateEasyMathProblem()
             DifficultyLevel.MEDIUM -> generateMediumMathProblem()
             DifficultyLevel.HARD -> generateHardMathProblem()
         }
-    }
 
     private fun generateEasyMathProblem(): String =
         "${Random.nextInt(from = 1, until = 10)} + ${Random.nextInt(from = 1, until = 10)}"
@@ -111,15 +104,15 @@ class CaptchaService(private val captchaProperties: CaptchaProperties) {
 
     /**
      * Generates a pattern sequence for pattern CAPTCHA
+     * @param difficultyLevel The difficulty level of the captcha (defaults to configured value)
      * @return Pattern sequence as a string with the answer separated by a special character
      */
-    private fun generatePatternCaptcha(): String {
-        return when (captchaProperties.difficultyLevel) {
+    fun generatePatternCaptcha(difficultyLevel: DifficultyLevel = DifficultyLevel.MEDIUM): String =
+        when (difficultyLevel) {
             DifficultyLevel.EASY -> generateEasyPattern()
             DifficultyLevel.MEDIUM -> generateMediumPattern()
             DifficultyLevel.HARD -> generateHardPattern()
         }
-    }
 
     /**
      * Generates an easy pattern (simple arithmetic progression)
@@ -208,9 +201,10 @@ class CaptchaService(private val captchaProperties: CaptchaProperties) {
     /**
      * Converts a string to a CAPTCHA image
      * @param text The text to convert to an image
+     * @param useBackgroundImage Whether to use a background image (defaults to configured value)
      * @return Byte array of the image in PNG format
      */
-    fun generateCaptchaImage(text: String): ByteArray {
+    fun generateCaptchaImage(text: String, useBackgroundImage: Boolean? = false): ByteArray {
         // Create a buffered image
         val image = BufferedImage(CAPTCHA_WIDTH, CAPTCHA_HEIGHT, BufferedImage.TYPE_INT_RGB)
         val graphics: Graphics2D = image.createGraphics()
@@ -220,16 +214,13 @@ class CaptchaService(private val captchaProperties: CaptchaProperties) {
         graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY)
 
         // Check if we should use a background image
-        val useBackground = captchaProperties.captchaType == CaptchaType.BACKGROUND_IMAGE || 
-                           captchaProperties.useBackgroundImage
-
-        if (useBackground) {
+        if (useBackgroundImage == true) {
             // Load a random background image
             try {
-                val bgNumber = Random.nextInt(1, 5) // We have 4 background images (1.jpeg to 4.jpeg)
-                val bgImageFile = File("src/main/resources/bg/$bgNumber.jpeg")
+                val bgNumber: Int = Random.nextInt(from = 1, until = 7)
+                val bgImageFile = File("src/main/resources/bg/$bgNumber.png")
                 if (bgImageFile.exists()) {
-                    val bgImage = ImageIO.read(bgImageFile)
+                    val bgImage: BufferedImage? = ImageIO.read(bgImageFile)
                     // Draw the background image, scaled to fit the captcha dimensions
                     graphics.drawImage(bgImage, 0, 0, CAPTCHA_WIDTH, CAPTCHA_HEIGHT, null)
                 } else {

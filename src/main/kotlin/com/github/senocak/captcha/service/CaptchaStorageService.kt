@@ -23,9 +23,8 @@ class CaptchaStorageService(private val captchaProperties: CaptchaProperties) {
      * @param captchaValue The CAPTCHA value to store
      * @return Encrypted token containing the CAPTCHA value, type, and timestamp
      */
-    fun storeCaptcha(captchaValue: String): String {
+    fun storeCaptcha(captchaValue: String, captchaType: CaptchaType): String {
         val timestamp: String = LocalDateTime.now().toString()
-        val captchaType: CaptchaType = captchaProperties.captchaType
         val dataToEncrypt = "$captchaValue$TYPE_DELIMITER$captchaType$DELIMITER$timestamp"
         return encrypt(data = dataToEncrypt)
     }
