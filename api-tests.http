@@ -1,0 +1,28 @@
+### Spring-Kotlin-Captcha API Tests
+
+### Variables
+@baseUrl = http://localhost:8081
+
+### Get Captcha Configuration
+# Returns the current captcha configuration (type and difficulty)
+GET {{baseUrl}}/captcha/config
+Accept: application/json
+
+### Generate Captcha Image and store the response
+# Generates a new CAPTCHA image and returns it with a token in the header
+# The token is returned in the X-Captcha-Token header
+# @name captchaResponse
+GET {{baseUrl}}/captcha/image
+Accept: image/png
+
+> {%
+    client.global.set("captchaToken", response.headers.valueOf("X-Captcha-Token"))
+ %}
+
+### Validate Captcha
+# Validates a CAPTCHA input against the token
+# Replace 'your-captcha-answer' with the actual answer to the captcha
+POST {{baseUrl}}/captcha/validate
+Content-Type: application/x-www-form-urlencoded
+
+captchaInput=13&token={{captchaToken}}
