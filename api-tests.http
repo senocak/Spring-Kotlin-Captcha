@@ -4,110 +4,58 @@
 @baseUrl = http://localhost:8081
 
 ### Get Captcha Configuration
-# Returns the current captcha configuration (type and difficulty)
+# Returns the current captcha configuration (difficulty levels)
 GET {{baseUrl}}/captcha/config
 Accept: application/json
 
-### Generate Captcha Image and store the response
-# Generates a new CAPTCHA image and returns it with a token in the header
+### Generate Text Captcha with Background
+# Generates a new text CAPTCHA image with background image
 # The token is returned in the X-Captcha-Token header
-# @name captchaResponse
-GET {{baseUrl}}/captcha/image
+# @name textCaptchaWithBgResponse
+GET {{baseUrl}}/captcha/text?difficultyLevel=MEDIUM&useBackgroundImage=true
 Accept: image/png
 
 > {%
-    client.global.set("captchaToken", response.headers.valueOf("X-Captcha-Token"))
+    client.global.set("token", response.headers.valueOf("X-Captcha-Token"))
  %}
 
-### Generate Captcha Image with parameters
-# Generates a new CAPTCHA image with specified type, difficulty, and background image
-# The token is returned in the X-Captcha-Token header
-# @name captchaResponseWithParams
-GET {{baseUrl}}/captcha/image?captchaType=MATH&difficultyLevel=HARD&useBackgroundImage=true
-Accept: image/png
-
-> {%
-    client.global.set("captchaTokenWithParams", response.headers.valueOf("X-Captcha-Token"))
- %}
-
-### Validate Captcha
-# Validates a CAPTCHA input against the token
-# Replace 'your-captcha-answer' with the actual answer to the captcha
-POST {{baseUrl}}/captcha/validate
-Content-Type: application/x-www-form-urlencoded
-
-captchaInput=13&token={{captchaToken}}
-
-### Generate Text Captcha with parameters
-# Generates a new text CAPTCHA image with specified difficulty and background image
-# The token is returned in the X-Captcha-Token header
-# @name textCaptchaResponse
-GET {{baseUrl}}/captcha/text/image?difficultyLevel=EASY&useBackgroundImage=false
-Accept: image/png
-
-> {%
-    client.global.set("textCaptchaToken", response.headers.valueOf("X-Captcha-Token"))
- %}
-
-### Generate Math Captcha with parameters
+### Generate Math Captcha
 # Generates a new math CAPTCHA image with specified difficulty and background image
 # The token is returned in the X-Captcha-Token header
 # @name mathCaptchaResponse
-GET {{baseUrl}}/captcha/math/image?difficultyLevel=MEDIUM&useBackgroundImage=true
+GET {{baseUrl}}/captcha/math?difficultyLevel=MEDIUM&useBackgroundImage=true
 Accept: image/png
 
 > {%
-    client.global.set("mathCaptchaToken", response.headers.valueOf("X-Captcha-Token"))
+    client.global.set("token", response.headers.valueOf("X-Captcha-Token"))
  %}
 
-### Generate Pattern Captcha with parameters
-# Generates a new pattern CAPTCHA image with specified difficulty and background image
+### Generate Pattern Captcha with Background
+# Generates a new pattern CAPTCHA image with background image
 # The token is returned in the X-Captcha-Token header
-# @name patternCaptchaResponse
-GET {{baseUrl}}/captcha/pattern/image?difficultyLevel=HARD&useBackgroundImage=false
+# @name patternCaptchaWithBgResponse
+GET {{baseUrl}}/captcha/pattern?difficultyLevel=MEDIUM&useBackgroundImage=true
 Accept: image/png
 
 > {%
-    client.global.set("patternCaptchaToken", response.headers.valueOf("X-Captcha-Token"))
+    client.global.set("token", response.headers.valueOf("X-Captcha-Token"))
  %}
 
-### Generate Background Image Captcha with parameters
-# Generates a new CAPTCHA image with a background image and specified difficulty
+### Generate Audio Captcha with Medium Difficulty
+# Generates a new audio CAPTCHA with medium difficulty
 # The token is returned in the X-Captcha-Token header
-# @name backgroundCaptchaResponse
-GET {{baseUrl}}/captcha/background/image?difficultyLevel=MEDIUM
-Accept: image/png
-
-> {%
-    client.global.set("backgroundCaptchaToken", response.headers.valueOf("X-Captcha-Token"))
- %}
-
-### Generate Audio Captcha with parameters
-# Generates a new audio CAPTCHA with specified type and difficulty
-# The token is returned in the X-Captcha-Token header
-# @name audioCaptchaResponse
-GET {{baseUrl}}/captcha/audio?captchaType=TEXT&difficultyLevel=EASY
+# @name audioCaptchaMediumResponse
+GET {{baseUrl}}/captcha/audio?difficultyLevel=MEDIUM
 Accept: audio/wav
 
 > {%
-    client.global.set("audioCaptchaToken", response.headers.valueOf("X-Captcha-Token"))
+    client.global.set("token", response.headers.valueOf("X-Captcha-Token"))
  %}
 
-### Generate Specific Audio Captcha with parameters
-# Generates a new specific audio CAPTCHA with specified difficulty
-# The token is returned in the X-Captcha-Token header
-# @name specificAudioCaptchaResponse
-GET {{baseUrl}}/captcha/audio/specific?difficultyLevel=MEDIUM
-Accept: audio/wav
-
-> {%
-    client.global.set("specificAudioCaptchaToken", response.headers.valueOf("X-Captcha-Token"))
- %}
-
-### Validate Captcha (for any of the above)
-# Validates a CAPTCHA input against the token
+### Validate Text Captcha
+# Validates a text CAPTCHA input against the token
 # Replace 'your-captcha-answer' with the actual answer to the captcha
 POST {{baseUrl}}/captcha/validate
 Content-Type: application/x-www-form-urlencoded
 
-captchaInput=your-captcha-answer&token={{backgroundCaptchaToken}}
+captchaInput=your-captcha-answer&token={{token}}
