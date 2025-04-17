@@ -32,6 +32,7 @@ class CaptchaService(private val captchaProperties: CaptchaProperties) {
         return when (captchaProperties.captchaType) {
             CaptchaType.TEXT -> generateTextCaptcha()
             CaptchaType.MATH -> generateMathCaptcha()
+            CaptchaType.PATTERN -> generatePatternCaptcha()
         }
     }
 
@@ -85,6 +86,102 @@ class CaptchaService(private val captchaProperties: CaptchaProperties) {
             1 -> "$a - $b + $c"
             2 -> "$a × $b"
             else -> "($a + $b) × $c"
+        }
+    }
+
+    /**
+     * Generates a pattern sequence for pattern CAPTCHA
+     * @return Pattern sequence as a string with the answer separated by a special character
+     */
+    private fun generatePatternCaptcha(): String {
+        return when (captchaProperties.difficultyLevel) {
+            DifficultyLevel.EASY -> generateEasyPattern()
+            DifficultyLevel.MEDIUM -> generateMediumPattern()
+            DifficultyLevel.HARD -> generateHardPattern()
+        }
+    }
+
+    /**
+     * Generates an easy pattern (simple arithmetic progression)
+     */
+    private fun generateEasyPattern(): String {
+        val start = Random.nextInt(1, 5)
+        val increment = Random.nextInt(1, 3)
+        val sequence = (0 until 4).map { start + it * increment }.joinToString(" ")
+        val next = start + 4 * increment
+        return "$sequence ? $next"
+    }
+
+    /**
+     * Generates a medium pattern (more complex arithmetic or alternating patterns)
+     */
+    private fun generateMediumPattern(): String {
+        return when (Random.nextInt(3)) {
+            0 -> {
+                // Arithmetic sequence with larger numbers
+                val start = Random.nextInt(5, 20)
+                val increment = Random.nextInt(2, 5)
+                val sequence = (0 until 4).map { start + it * increment }.joinToString(" ")
+                val next = start + 4 * increment
+                "$sequence ? $next"
+            }
+            1 -> {
+                // Alternating increment pattern
+                val start = Random.nextInt(1, 10)
+                val increment1 = Random.nextInt(1, 4)
+                val increment2 = Random.nextInt(1, 4)
+                val sequence = mutableListOf<Int>()
+                sequence.add(start)
+                sequence.add(start + increment1)
+                sequence.add(start + increment1 + increment2)
+                sequence.add(start + increment1 + increment2 + increment1)
+                val next = start + increment1 + increment2 + increment1 + increment2
+                "${sequence.joinToString(" ")} ? $next"
+            }
+            else -> {
+                // Multiplication pattern
+                val start = Random.nextInt(2, 5)
+                val multiplier = Random.nextInt(2, 3)
+                val sequence = (0 until 4).map { start * Math.pow(multiplier.toDouble(), it.toDouble()).toInt() }.joinToString(" ")
+                val next = start * Math.pow(multiplier.toDouble(), 4.0).toInt()
+                "$sequence ? $next"
+            }
+        }
+    }
+
+    /**
+     * Generates a hard pattern (complex mathematical patterns)
+     */
+    private fun generateHardPattern(): String {
+        return when (Random.nextInt(3)) {
+            0 -> {
+                // Fibonacci-like sequence (each number is the sum of the two preceding ones)
+                val a = Random.nextInt(1, 5)
+                val b = Random.nextInt(a + 1, a + 5)
+                val sequence = mutableListOf(a, b)
+                for (i in 2 until 4) {
+                    sequence.add(sequence[i-2] + sequence[i-1])
+                }
+                val next = sequence[2] + sequence[3]
+                "${sequence.joinToString(" ")} ? $next"
+            }
+            1 -> {
+                // Square/cube pattern
+                val sequence = (1..4).map { it * it }.joinToString(" ")
+                val next = 5 * 5
+                "$sequence ? $next"
+            }
+            else -> {
+                // Complex arithmetic pattern
+                val start = Random.nextInt(2, 10)
+                val sequence = mutableListOf<Int>()
+                sequence.add(start)
+                for (i in 1 until 4) {
+                    sequence.add(sequence[i-1] + i * 2)
+                }
+                val next = sequence[3] + 4 * 2
+                "${sequence.joinToString(" ")} ? $next"
+            }
         }
     }
 

@@ -54,7 +54,8 @@ class CaptchaStorageService(private val captchaProperties: CaptchaProperties) {
             val captchaType: CaptchaType = CaptchaType.valueOf(captchaParts[1])
             return when (captchaType) {
                 CaptchaType.TEXT -> storedValue.equals(other = userInput, ignoreCase = true)
-                CaptchaType.MATH -> evaluateMathExpression(storedValue) == userInput.trim().toIntOrNull()
+                CaptchaType.MATH -> evaluateMathExpression(expression = storedValue) == userInput.trim().toIntOrNull()
+                CaptchaType.PATTERN -> validatePatternAnswer(storedValue = storedValue, userInput = userInput)
             }
         } catch (e: Exception) {
             // If decryption fails or any other error occurs, validation fails
@@ -127,6 +128,24 @@ class CaptchaStorageService(private val captchaProperties: CaptchaProperties) {
     private fun isExpired(timestamp: LocalDateTime): Boolean {
         val expirationTime: LocalDateTime? = timestamp.plusMinutes(captchaProperties.expirationMinutes)
         return LocalDateTime.now().isAfter(expirationTime)
+    }
+
+    /**
+     * Validates the user's answer for a pattern captcha
+     * @param storedValue The pattern string stored in the token
+     * @param userInput The user's input
+     * @return True if the user's input matches the expected answer
+     */
+    private fun validatePatternAnswer(storedValue: String, userInput: String): Boolean {
+        try {
+            // Pattern format is "sequence ? answer"
+            val parts: List<String> = storedValue.split(" ? ")
+            if (parts.size != 2)
+                return false
+            return parts[1].trim() == userInput.trim()
+        } catch (e: Exception) {
+            return false
+        }
     }
 
     /**

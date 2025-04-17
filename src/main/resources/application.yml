@@ -19,6 +19,7 @@ captcha:
   secretKey: ThisIsASecretKey1234567890123456
   expirationMinutes: 10
   #captchaType: TEXT
-  captchaType: MATH
+  #captchaType: MATH
+  captchaType: PATTERN
   difficultyLevel: HARD
   #difficultyLevel: EASY, MEDIUM, HARD

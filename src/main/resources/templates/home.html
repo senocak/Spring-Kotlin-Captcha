@@ -166,6 +166,10 @@
                     captchaInputLabel.textContent = 'Enter the answer to the math problem:'
                     captchaInput.type = 'number'
                     captchaInput.placeholder = 'Enter the result'
+                } else if (captchaType === 'PATTERN') {
+                    captchaInputLabel.textContent = 'What number comes next in the pattern?'
+                    captchaInput.type = 'number'
+                    captchaInput.placeholder = 'Enter the next number'
                 } else {
                     captchaInputLabel.textContent = 'Enter the text shown in the image:'
                     captchaInput.type = 'text'
@@ -224,8 +228,8 @@
                         resultDiv.className = 'result success'
                         resultDiv.textContent = 'Success! CAPTCHA validation passed.'
 
-                        // Show success message with the correct answer for math captchas
-                        if (captchaType === 'MATH') {
+                        // Show success message with the correct answer for math/pattern captchas
+                        if (captchaType === 'MATH' || captchaType === 'PATTERN') {
                             resultDiv.textContent = `Success! Your answer "${inputValue}" is correct.`;
                         } else {
                             resultDiv.textContent = 'Success! CAPTCHA validation passed.';
@@ -236,6 +240,8 @@
                         // Show appropriate error message based on captcha type
                         if (captchaType === 'MATH') {
                             resultDiv.textContent = `Error! Your answer "${inputValue}" is incorrect. Please try again.`;
+                        } else if (captchaType === 'PATTERN') {
+                            resultDiv.textContent = `Error! Your answer "${inputValue}" is incorrect. Please identify the next number in the pattern.`;
                         } else {
                             resultDiv.textContent = 'Error! CAPTCHA validation failed. Please try again.';
                         }
