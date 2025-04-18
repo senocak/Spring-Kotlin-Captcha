@@ -1,5 +1,6 @@
 package com.github.senocak.captcha.controller
 
+import com.github.senocak.captcha.config.CaptchaProperties
 import com.github.senocak.captcha.config.CaptchaType
 import com.github.senocak.captcha.config.DifficultyLevel
 import com.github.senocak.captcha.service.CaptchaService
@@ -27,7 +28,8 @@ class HomeController {
 @RequestMapping("/captcha")
 class CaptchaController(
     private val captchaService: CaptchaService,
-    private val captchaStorageService: CaptchaStorageService
+    private val captchaStorageService: CaptchaStorageService,
+    private val captchaProperties: CaptchaProperties
 ) {
     companion object {
         private const val CAPTCHA_TOKEN_HEADER = "X-Captcha-Token"
@@ -52,10 +54,10 @@ class CaptchaController(
     @GetMapping("/text", produces = [MediaType.IMAGE_PNG_VALUE])
     fun getTextCaptchaImage(
         @RequestParam(required = false) difficultyLevel: DifficultyLevel?,
-        @RequestParam(required = false) useBackgroundImage: Boolean? = false
+        @RequestParam(required = false) useBackgroundImage: Boolean? = null
     ): ResponseEntity<ByteArray> {
         val captchaText: String = captchaService.generateTextCaptcha(
-            difficultyLevel = difficultyLevel ?: DifficultyLevel.MEDIUM
+            difficultyLevel = difficultyLevel ?: captchaProperties.defaultDifficulty
         )
         val token: String = captchaStorageService.storeCaptcha(
             captchaValue = captchaText,
@@ -79,10 +81,10 @@ class CaptchaController(
     @GetMapping("/math", produces = [MediaType.IMAGE_PNG_VALUE])
     fun getMathCaptchaImage(
         @RequestParam(required = false) difficultyLevel: DifficultyLevel?,
-        @RequestParam(required = false) useBackgroundImage: Boolean?
+        @RequestParam(required = false) useBackgroundImage: Boolean? = null
     ): ResponseEntity<ByteArray> {
         val captchaText: String = captchaService.generateMathCaptcha(
-            difficultyLevel = difficultyLevel ?: DifficultyLevel.MEDIUM
+            difficultyLevel = difficultyLevel ?: captchaProperties.defaultDifficulty
         )
         val token: String = captchaStorageService.storeCaptcha(
             captchaValue = captchaText,
@@ -106,10 +108,10 @@ class CaptchaController(
     @GetMapping("/pattern", produces = [MediaType.IMAGE_PNG_VALUE])
     fun getPatternCaptchaImage(
         @RequestParam(required = false) difficultyLevel: DifficultyLevel?,
-        @RequestParam(required = false) useBackgroundImage: Boolean? = false
+        @RequestParam(required = false) useBackgroundImage: Boolean? = null
     ): ResponseEntity<ByteArray> {
         val captchaText: String = captchaService.generatePatternCaptcha(
-            difficultyLevel = difficultyLevel ?: DifficultyLevel.MEDIUM
+            difficultyLevel = difficultyLevel ?: captchaProperties.defaultDifficulty
         )
         val token: String = captchaStorageService.storeCaptcha(
             captchaValue = captchaText,
@@ -134,7 +136,7 @@ class CaptchaController(
         @RequestParam(required = false) difficultyLevel: DifficultyLevel?
     ): ResponseEntity<ByteArray> {
         val captchaText: String = captchaService.generateTextCaptcha(
-            difficultyLevel = difficultyLevel ?: DifficultyLevel.MEDIUM,
+            difficultyLevel = difficultyLevel ?: captchaProperties.defaultDifficulty,
             useDigitsOnly = true
         )
         val token: String = captchaStorageService.storeCaptcha(

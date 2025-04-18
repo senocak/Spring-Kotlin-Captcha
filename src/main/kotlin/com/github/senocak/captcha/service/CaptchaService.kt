@@ -1,7 +1,6 @@
 package com.github.senocak.captcha.service
 
 import com.github.senocak.captcha.config.CaptchaProperties
-import com.github.senocak.captcha.config.CaptchaType
 import com.github.senocak.captcha.config.DifficultyLevel
 import org.springframework.stereotype.Service
 import java.awt.BasicStroke
@@ -30,28 +29,12 @@ class CaptchaService(private val captchaProperties: CaptchaProperties) {
     }
 
     /**
-     * Generates a random digit string for audio CAPTCHA
-     * @param difficultyLevel The difficulty level of the captcha (defaults to configured value)
-     * @return Random string of digits
-     */
-    fun generateAudioCaptchaText(difficultyLevel: DifficultyLevel = DifficultyLevel.MEDIUM): String {
-        val length: Int = when (difficultyLevel) {
-            DifficultyLevel.EASY -> 4
-            DifficultyLevel.MEDIUM -> 6
-            DifficultyLevel.HARD -> 8
-        }
-        return (1..length)
-            .map { Random.nextInt(from = 1, until = 10).toString() } // Only digits 1-9 since we have audio files for 1-10
-            .joinToString(separator = "")
-    }
-
-    /**
      * Generates a random alphanumeric string for text CAPTCHA
      * @param difficultyLevel The difficulty level of the captcha (defaults to configured value)
      * @return Random string of specified length
      */
     fun generateTextCaptcha(
-        difficultyLevel: DifficultyLevel = DifficultyLevel.MEDIUM,
+        difficultyLevel: DifficultyLevel = captchaProperties.defaultDifficulty,
         useDigitsOnly: Boolean = false
     ): String {
         val length: Int = when (difficultyLevel) {
@@ -70,7 +53,7 @@ class CaptchaService(private val captchaProperties: CaptchaProperties) {
      * @param difficultyLevel The difficulty level of the captcha (defaults to configured value)
      * @return Math problem as a string
      */
-    fun generateMathCaptcha(difficultyLevel: DifficultyLevel = DifficultyLevel.MEDIUM): String =
+    fun generateMathCaptcha(difficultyLevel: DifficultyLevel = captchaProperties.defaultDifficulty): String =
         when (difficultyLevel) {
             DifficultyLevel.EASY -> generateEasyMathProblem()
             DifficultyLevel.MEDIUM -> generateMediumMathProblem()
@@ -107,7 +90,7 @@ class CaptchaService(private val captchaProperties: CaptchaProperties) {
      * @param difficultyLevel The difficulty level of the captcha (defaults to configured value)
      * @return Pattern sequence as a string with the answer separated by a special character
      */
-    fun generatePatternCaptcha(difficultyLevel: DifficultyLevel = DifficultyLevel.MEDIUM): String =
+    fun generatePatternCaptcha(difficultyLevel: DifficultyLevel = captchaProperties.defaultDifficulty): String =
         when (difficultyLevel) {
             DifficultyLevel.EASY -> generateEasyPattern()
             DifficultyLevel.MEDIUM -> generateMediumPattern()
@@ -204,7 +187,7 @@ class CaptchaService(private val captchaProperties: CaptchaProperties) {
      * @param useBackgroundImage Whether to use a background image (defaults to configured value)
      * @return Byte array of the image in PNG format
      */
-    fun generateCaptchaImage(text: String, useBackgroundImage: Boolean? = false): ByteArray {
+    fun generateCaptchaImage(text: String, useBackgroundImage: Boolean? = captchaProperties.useBackgroundImage): ByteArray {
         // Create a buffered image
         val image = BufferedImage(CAPTCHA_WIDTH, CAPTCHA_HEIGHT, BufferedImage.TYPE_INT_RGB)
         val graphics: Graphics2D = image.createGraphics()

@@ -1,0 +1,91 @@
+{
+  "groups": [
+    {
+      "name": "captcha",
+      "type": "com.github.senocak.captcha.config.CaptchaProperties",
+      "sourceType": "com.github.senocak.captcha.config.CaptchaProperties",
+      "description": "Configuration properties for the Spring Kotlin Captcha library."
+    }
+  ],
+  "properties": [
+    {
+      "name": "captcha.secret-key",
+      "type": "java.lang.String",
+      "sourceType": "com.github.senocak.captcha.config.CaptchaProperties",
+      "description": "Secret key used for AES encryption of captcha tokens. Must be 32 bytes (256 bits) for AES-256.",
+      "defaultValue": "ThisIsASecretKey1234567890123456"
+    },
+    {
+      "name": "captcha.expiration-minutes",
+      "type": "java.lang.Long",
+      "sourceType": "com.github.senocak.captcha.config.CaptchaProperties",
+      "description": "How long captchas are valid, in minutes.",
+      "defaultValue": 10
+    },
+    {
+      "name": "captcha.default-type",
+      "type": "com.github.senocak.captcha.config.CaptchaType",
+      "sourceType": "com.github.senocak.captcha.config.CaptchaProperties",
+      "description": "Default captcha type to use if not specified.",
+      "defaultValue": "TEXT"
+    },
+    {
+      "name": "captcha.default-difficulty",
+      "type": "com.github.senocak.captcha.config.DifficultyLevel",
+      "sourceType": "com.github.senocak.captcha.config.CaptchaProperties",
+      "description": "Default difficulty level to use if not specified.",
+      "defaultValue": "MEDIUM"
+    },
+    {
+      "name": "captcha.use-background-image",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.github.senocak.captcha.config.CaptchaProperties",
+      "description": "Whether to use background images by default.",
+      "defaultValue": false
+    }
+  ],
+  "hints": [
+    {
+      "name": "captcha.default-type",
+      "values": [
+        {
+          "value": "TEXT",
+          "description": "Text captcha with random alphanumeric characters."
+        },
+        {
+          "value": "MATH",
+          "description": "Math captcha with arithmetic expressions."
+        },
+        {
+          "value": "PATTERN",
+          "description": "Pattern captcha with sequence patterns."
+        },
+        {
+          "value": "AUDIO",
+          "description": "Audio captcha with spoken digits."
+        },
+        {
+          "value": "BACKGROUND_IMAGE",
+          "description": "Text captcha with a background image."
+        }
+      ]
+    },
+    {
+      "name": "captcha.default-difficulty",
+      "values": [
+        {
+          "value": "EASY",
+          "description": "Easy difficulty (shorter length, simpler patterns)."
+        },
+        {
+          "value": "MEDIUM",
+          "description": "Medium difficulty (moderate length and complexity)."
+        },
+        {
+          "value": "HARD",
+          "description": "Hard difficulty (longer length, more complex patterns)."
+        }
+      ]
+    }
+  ]
+}

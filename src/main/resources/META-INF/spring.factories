@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.github.senocak.captcha.config.CaptchaAutoConfiguration
